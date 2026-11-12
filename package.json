@@ -1,0 +1,39 @@
+{
+  "name": "schemasync-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-assisted database schema comparison (SQL Server / Oracle) with Excel export and a SQL Server <-> Oracle converter.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "diff": "^8.0.4",
+    "exceljs": "^4.4.0",
+    "mssql": "^12.7.14",
+    "next": "^15.5.29",
+    "oracledb": "^6.9.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/mssql": "^9.1.7",
+    "@types/node": "^22.15.0",
+    "@types/oracledb": "^6.9.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitest/coverage-v8": "^3.2.7",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}
