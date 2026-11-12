@@ -10,7 +10,21 @@ npm run test:coverage    # coverage report in coverage/index.html
 
 CI (`.github/workflows/ci.yml`) runs typecheck → tests with coverage → build on every push and pull request, and uploads the coverage report as an artifact.
 
-**Current result:** 15 files, 280+ tests, about 99% of lines covered in `src/lib` and `src/app/api`.
+**Current result:** 18 files, 300 tests, about 99% of lines covered in `src/lib` and `src/app/api`.
+
+## Tests gate every deployment
+
+`npm run build` first runs `scripts/test-report.mjs` (all tests + coverage). **If any test fails, the build stops**, so Vercel, Docker and CI never deploy untested code. The script also writes `public/quality.json`, which the app shows on the **Quality & tests** page (every test, pass/fail, timings, coverage).
+
+| Command | What it does |
+|---|---|
+| `npm run build` | tests + coverage + report, then the Next.js build |
+| `npm run test:report` | tests + coverage + `public/quality.json` only |
+| `npm run build:skip-tests` | build without tests (emergencies only) |
+
+## Live self-check (in the app)
+
+**Quality & tests → Run live self-check** calls `/api/self-test`. The running server executes 21 checks with known inputs and expected outputs (compare counts, normalisation, noise detection, risk levels, converter output, deploy-script order and safety) and shows expected vs actual for each. It needs no database or API key, so anyone can verify a deployment in one click.
 
 ## Test files
 
@@ -31,6 +45,9 @@ CI (`.github/workflows/ci.yml`) runs typecheck → tests with coverage → build
 | `db.index.test.ts` | Connection validation and user-friendly error messages |
 | `api.test.ts` | Every API route: demo compare, validation, success and 502 failures, test-connection, convert limits, AI status/review |
 | `middleware.test.ts` | Optional Basic Auth (off, on, wrong user/password, malformed header) |
+| `selfTest.test.ts` | Every live self-check passes; the endpoint returns JSON |
+| `http.test.ts` | Readable errors when a host returns an HTML error page (500, timeout, 404, 401, network) |
+| `db.lazy.test.ts` | Drivers load only when used; a driver failure becomes a clear message |
 
 ## Scenario catalogue
 
@@ -106,6 +123,9 @@ CI (`.github/workflows/ci.yml`) runs typecheck → tests with coverage → build
 | A5 | AI review batch > 30 items | Trimmed to 30 |
 | S1 | `APP_PASSWORD` not set | Open |
 | S2 | `APP_PASSWORD` set, no / wrong credentials | 401 with Basic challenge |
+| A6 | Host returns an HTML error page (Vercel 500/504) | Clear message instead of "Unexpected token '<'" |
+| A7 | Unexpected exception or invalid request body in any route | JSON error, never an HTML page |
+| A8 | Demo mode | Works even if the database drivers cannot load |
 
 ## Manual checks against real databases (before go-live)
 

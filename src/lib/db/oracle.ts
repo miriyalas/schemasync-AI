@@ -13,6 +13,7 @@ async function connect(c: ConnectionInput) {
     user: c.user,
     password: c.password,
     connectString: `${c.host}:${c.port || 1521}/${c.serviceName || c.database || ""}`,
+    connectTimeout: 15,
   });
 }
 

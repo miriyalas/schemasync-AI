@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { SqlEditor } from "@/components/CodeDiff";
 import { Button, Card, ErrorBox, PageHeader, cx } from "@/components/ui";
 import { downloadText } from "@/lib/excel";
+import { fetchJson } from "@/lib/http";
 import { takeConverterInput } from "@/lib/store";
 import type { ConvertResult, Engine } from "@/lib/types";
 
@@ -49,9 +50,8 @@ export default function ConverterPage() {
       setInput(pending.sql);
       setFrom(pending.from);
     }
-    fetch("/api/ai/status")
-      .then((r) => r.json())
-      .then(setAi)
+    fetchJson<{ enabled: boolean; provider: string; model: string }>("/api/ai/status")
+      .then((r) => setAi(r.data))
       .catch(() => setAi({ enabled: false, provider: "none", model: "" }));
   }, []);
 
@@ -59,14 +59,13 @@ export default function ConverterPage() {
     setBusy(true);
     setError(null);
     try {
-      const r = await fetch("/api/convert", {
+      const r = await fetchJson<ConvertResult & { error?: string }>("/api/convert", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ sql: input, from, to, useAI: useAI && !!ai?.enabled }),
       });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || `Conversion failed (${r.status}).`);
-      setResult(data);
+      if (!r.ok) throw new Error(r.data.error || `Conversion failed (${r.status}).`);
+      setResult(r.data);
     } catch (e) {
       setError((e as Error).message);
     } finally {

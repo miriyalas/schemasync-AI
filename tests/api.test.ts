@@ -61,6 +61,27 @@ describe("POST /api/compare", () => {
   });
 });
 
+describe("API routes always answer with JSON", () => {
+  it("compare returns a JSON 500 when something unexpected throws", async () => {
+    m.takeSnapshot.mockImplementation(() => {
+      throw new Error("driver exploded");
+    });
+    const res = await compare(post({ source: src, target: tgt, options: {} }));
+    expect([500, 502]).toContain(res.status);
+    expect(res.headers.get("content-type")).toMatch(/json/);
+    expect((await res.json()).error).toMatch(/driver exploded/);
+  });
+  it("invalid JSON bodies get a JSON error", async () => {
+    const bad = () => new Request("http://test/api", { method: "POST", body: "not json" });
+    expect((await compare(bad())).status).toBe(500);
+    expect((await testConn(bad())).status).toBe(400);
+    expect((await convert(bad())).status).toBe(400);
+    process.env.AI_PROVIDER = "openai";
+    process.env.OPENAI_API_KEY = "k";
+    expect((await review(bad())).status).toBe(400);
+  });
+});
+
 describe("POST /api/test-connection", () => {
   it("rejects incomplete input", async () => {
     const res = await testConn(post({ connection: { ...src, user: "" } }));

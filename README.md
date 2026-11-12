@@ -17,6 +17,8 @@ Compare two database environments (for example **DEV vs SIT**) and see exactly w
 | **Excel export** | Summary, All Differences, Missing, Extra, Definition Diff, Columns, Keys & Indexes, Code Objects, Deploy Script |
 | **Deployment script** | Dependency-ordered SQL Server script: types → tables → columns → keys → indexes → code → foreign keys. Objects that exist only in the target are listed as commented-out DROPs, never dropped automatically |
 | **SQL Converter** | T-SQL ⇄ Oracle PL/SQL. Rules convert functions, data types, TOP/FETCH, string joins, bind variables and more; AI finishes procedural code. Lists every change, warnings and a confidence level |
+| **Quality & tests tab** | Shows every unit test result and coverage from the last build, plus a one-click live self-check of the running server |
+| **Tech stack tab** | The technologies used, versions and why |
 | **Demo mode** | "Try with demo data" works with no database, so you can see the app right after deploying |
 
 ## Tech stack
@@ -31,7 +33,7 @@ Compare two database environments (for example **DEV vs SIT**) and see exactly w
 | Excel | `exceljs`, generated in the browser |
 | AI | Plain `fetch` to Anthropic / OpenAI / Azure OpenAI / Ollama |
 | Hosting | Vercel (or Docker for self-hosting) |
-| Tests | Vitest, about 280 unit tests, ~99% line coverage of server code |
+| Tests | Vitest, 300 unit tests, ~99% line coverage of server code; tests run in every build |
 | CI | GitHub Actions (typecheck → tests + coverage → build) |
 
 ## Documentation
@@ -113,7 +115,7 @@ npm test                # all unit tests
 npm run test:coverage   # with coverage report (coverage/index.html)
 ```
 
-See [docs/TESTING.md](docs/TESTING.md) for the scenario list.
+`npm run build` runs the tests first and stops if any fail. See [docs/TESTING.md](docs/TESTING.md) for the scenario list.
 
 ## Deploy to Vercel
 
@@ -128,7 +130,10 @@ See [docs/TESTING.md](docs/TESTING.md) for the scenario list.
 3. Under **Settings → Environment Variables**, add:
    - `APP_PASSWORD` (strongly recommended: the app is otherwise public)
    - `AI_PROVIDER` + the matching key, for example `AI_PROVIDER=anthropic` and `ANTHROPIC_API_KEY=…`
-4. Deploy. Open the URL and click **Try with demo data**.
+4. Deploy. The build runs all unit tests first; if one fails, Vercel shows it in the build log and does not deploy.
+5. Open the URL, click **Try with demo data**, then open **Quality & tests → Run live self-check**.
+
+If you see a message about a server error or timeout, open Vercel → your project → **Logs**. Real-database comparisons only work if Vercel can reach the database (below).
 
 ### Important: Vercel must be able to reach your databases
 

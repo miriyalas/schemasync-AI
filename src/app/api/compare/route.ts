@@ -16,6 +16,15 @@ interface Body {
 }
 
 export async function POST(req: Request) {
+  try {
+    return await handle(req);
+  } catch (e) {
+    console.error("compare failed", e);
+    return NextResponse.json({ error: `Comparison failed on the server: ${(e as Error).message}` }, { status: 500 });
+  }
+}
+
+async function handle(req: Request) {
   const body = (await req.json()) as Body;
   const options: CompareOptions = {
     groups: body.options?.groups?.length ? body.options.groups : ["tables", "keys", "foreignKeys", "indexes", "views", "procedures", "functions", "tableTypes"],

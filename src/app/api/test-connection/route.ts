@@ -6,7 +6,12 @@ export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { connection } = (await req.json()) as { connection: ConnectionInput };
+  let connection: ConnectionInput;
+  try {
+    ({ connection } = (await req.json()) as { connection: ConnectionInput });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Invalid request body." }, { status: 400 });
+  }
   const invalid = validateConnection(connection, connection?.label || "Connection");
   if (invalid) return NextResponse.json({ ok: false, error: invalid }, { status: 400 });
   try {

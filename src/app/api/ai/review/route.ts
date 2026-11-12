@@ -7,7 +7,12 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   if (!aiConfig().enabled) return NextResponse.json({ error: "AI is not configured." }, { status: 400 });
-  const { items } = (await req.json()) as { items: ReviewInput[] };
+  let items: ReviewInput[];
+  try {
+    ({ items } = (await req.json()) as { items: ReviewInput[] });
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
   if (!Array.isArray(items) || !items.length) return NextResponse.json({ items: [] });
   try {
     return NextResponse.json({ items: await reviewWithAi(items.slice(0, 30)) });

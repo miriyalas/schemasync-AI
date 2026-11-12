@@ -206,7 +206,9 @@ export function tsqlToOracle(input: string, log: ChangeLog, procedural: boolean)
 
   // ---- SELECT without FROM needs DUAL
   if (/\bSELECT\b/i.test(t) && !/\bFROM\b/i.test(t) && !procedural) {
-    t = t.replace(/\s*(;?)\s*$/, " FROM DUAL$1");
+    // insert before a trailing semicolon and trailing comments, never inside a comment
+    const tail = /(?:\s*;)?(?:\s*\u0001C\d+\u0001)*\s*$/.exec(t)![0];
+    t = t.slice(0, t.length - tail.length).trimEnd() + " FROM DUAL" + tail.replace(/^\s+(?=;)/, "").trimEnd();
     log.add("SELECT expr", "SELECT expr FROM DUAL");
   }
 

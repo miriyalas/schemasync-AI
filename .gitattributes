@@ -1,0 +1,6 @@
+# Keep LF line endings in the repository on every OS (Windows included),
+# so SQL samples and tests behave the same everywhere.
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.xlsx binary

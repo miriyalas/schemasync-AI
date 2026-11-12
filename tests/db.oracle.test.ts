@@ -90,7 +90,7 @@ describe("oracleType", () => {
 describe("testOracle", () => {
   it("builds the connect string and reports the version", async () => {
     expect(await testOracle(conn)).toEqual({ ok: true, version: "Oracle Database 19c Enterprise Edition", database: "APP_SIT", canViewDefinition: true });
-    expect(state.cfg).toEqual({ user: "app_ro", password: "pw", connectString: "ora:1521/PDB1" });
+    expect(state.cfg).toEqual({ user: "app_ro", password: "pw", connectString: "ora:1521/PDB1", connectTimeout: 15 });
     expect(state.queries.find((x) => x.q.includes("all_objects"))!.b).toEqual({ o: "APP_SIT" });
     expect(state.closed).toBe(1);
   });

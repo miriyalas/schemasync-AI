@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fetchJson } from "@/lib/http";
 import type { Profile } from "@/lib/profiles";
 import type { ConnectionInput } from "@/lib/types";
 import { Button, Card, EnvPill } from "./ui";
@@ -44,12 +45,12 @@ export function ConnectionForm({
     setTesting(true);
     setTest(null);
     try {
-      const r = await fetch("/api/test-connection", {
+      const r = await fetchJson<TestResult>("/api/test-connection", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ connection: value }),
       });
-      setTest(await r.json());
+      setTest(r.data);
     } catch (e) {
       setTest({ ok: false, error: (e as Error).message });
     } finally {

@@ -1,4 +1,4 @@
-import { columnDef } from "./db/sqlserver";
+import { columnDef } from "./db/format";
 import type { ColumnMeta, DbObject, Snapshot } from "./types";
 
 /**

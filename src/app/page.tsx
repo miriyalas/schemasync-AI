@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ConnectionForm } from "@/components/ConnectionForm";
 import { Button, Card, ErrorBox, PageHeader } from "@/components/ui";
+import type { ReviewOutput } from "@/lib/aiReview";
 import { toReviewInputClient, mergeReviews } from "@/lib/reviewClient";
+import { fetchJson } from "@/lib/http";
 import { loadProfiles, saveProfile, type Profile } from "@/lib/profiles";
 import { setResult } from "@/lib/store";
 import { TYPE_GROUPS, type CompareResult, type ConnectionInput } from "@/lib/types";
@@ -28,9 +30,8 @@ export default function NewComparison() {
 
   useEffect(() => {
     setProfiles(loadProfiles());
-    fetch("/api/ai/status")
-      .then((r) => r.json())
-      .then(setAi)
+    fetchJson<{ enabled: boolean; provider: string; model: string }>("/api/ai/status")
+      .then((r) => setAi(r.data))
       .catch(() => setAi({ enabled: false, provider: "none", model: "" }));
   }, []);
 
@@ -40,14 +41,13 @@ export default function NewComparison() {
     setError(null);
     setBusy(demo ? "Loading demo data…" : "Reading both databases…");
     try {
-      const r = await fetch("/api/compare", {
+      const r = await fetchJson<CompareResult & { error?: string }>("/api/compare", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ demo, source, target, options: { groups, ignoreWhitespace, ignoreCase } }),
       });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || `Comparison failed (${r.status}).`);
-      let result = data as CompareResult;
+      if (!r.ok) throw new Error(r.data.error || `Comparison failed (${r.status}).`);
+      let result = r.data as CompareResult;
 
       if (useAI && ai?.enabled && result.items.length) {
         // Review the most important items first, in small batches.
@@ -59,14 +59,13 @@ export default function NewComparison() {
         for (const batch of batches) {
           setBusy(`AI is reviewing differences… ${done}/${queue.length}`);
           try {
-            const rr = await fetch("/api/ai/review", {
+            const rr = await fetchJson<{ items?: ReviewOutput[]; error?: string }>("/api/ai/review", {
               method: "POST",
               headers: { "content-type": "application/json" },
               body: JSON.stringify({ items: batch.map(toReviewInputClient) }),
             });
-            const reviewed = await rr.json();
-            if (rr.ok) result = mergeReviews(result, reviewed.items || []);
-            else result.warnings = [...result.warnings, `AI review: ${reviewed.error || rr.status}`];
+            if (rr.ok) result = mergeReviews(result, rr.data.items || []);
+            else result.warnings = [...result.warnings, `AI review: ${rr.data.error || rr.status}`];
           } catch (e) {
             result.warnings = [...result.warnings, `AI review: ${(e as Error).message}`];
           }

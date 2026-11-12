@@ -8,3 +8,5 @@ next-env.d.ts
 .vercel
 .DS_Store
 coverage/
+public/quality.json
+.test-results.json

@@ -43,6 +43,9 @@ Test-NetConnection dev-sql.company.local -Port 1433
    | the provider's key | e.g. `ANTHROPIC_API_KEY` |
 
 4. **Redeploy** after changing variables.
+5. Open **Quality & tests → Run live self-check** to confirm the deployment works.
+
+If `/api/compare` shows a server error (500) or timeout (504): open the project → **Logs**. A timeout with a real database almost always means Vercel cannot reach it; demo mode and the converter do not need a database.
 
 Notes:
 - Function time: API routes request `maxDuration = 60` seconds. Your plan may allow more or less; very large schemas can need longer. For those, use Docker.

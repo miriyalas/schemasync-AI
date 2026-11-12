@@ -11,7 +11,7 @@ export default defineConfig({
       provider: "v8",
       include: ["src/lib/**/*.ts", "src/app/api/**/*.ts"],
       exclude: ["src/lib/excel.ts", "src/lib/store.ts", "src/lib/profiles.ts"],
-      reporter: ["text", "html", "lcov"],
+      reporter: ["text", "html", "lcov", "json-summary"],
     },
   },
 });

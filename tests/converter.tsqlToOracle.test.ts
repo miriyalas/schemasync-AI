@@ -105,6 +105,10 @@ describe("T-SQL → Oracle: strings, data types, syntax", () => {
   it("adds FROM DUAL to a SELECT without FROM", async () => {
     expect(norm(await conv("SELECT GETDATE();"))).toBe("SELECT SYSDATE FROM DUAL;");
   });
+  it("puts FROM DUAL before a trailing comment, not inside it", async () => {
+    expect(await conv("SELECT GETDATE(); -- now")).toBe("SELECT SYSDATE FROM DUAL; -- now");
+    expect(await conv("SELECT 1 -- one")).toBe("SELECT 1 FROM DUAL -- one");
+  });
   it("converts GO, PRINT, transactions and @@ROWCOUNT", async () => {
     const out = norm(await conv("BEGIN TRAN\nUPDATE t SET a = 1\nPRINT 'done'\nSELECT @@ROWCOUNT\nCOMMIT TRAN\nGO"));
     expect(out).toContain("COMMIT");

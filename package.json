@@ -5,12 +5,14 @@
   "description": "AI-assisted database schema comparison (SQL Server / Oracle) with Excel export and a SQL Server <-> Oracle converter.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/test-report.mjs && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "build:skip-tests": "next build",
+    "test:report": "node scripts/test-report.mjs"
   },
   "engines": {
     "node": ">=20"

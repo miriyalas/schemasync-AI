@@ -1,6 +1,9 @@
 import type { ConnectionInput, ObjectType, Snapshot } from "../types";
-import { snapshotSqlServer, testSqlServer } from "./sqlserver";
-import { snapshotOracle, testOracle } from "./oracle";
+
+/*
+ * Database drivers are loaded only when a real connection is used, so demo mode and the
+ * converter never depend on them, and a driver problem is reported as a clear error.
+ */
 
 export function validateConnection(c: ConnectionInput | undefined, role: string): string | null {
   if (!c) return `${role} connection is missing.`;
@@ -11,12 +14,22 @@ export function validateConnection(c: ConnectionInput | undefined, role: string)
   return null;
 }
 
+async function loadDriver(engine: ConnectionInput["engine"]) {
+  try {
+    return engine === "oracle" ? { oracle: await import("./oracle") } : { sqlserver: await import("./sqlserver") };
+  } catch (e) {
+    throw new Error(`Could not load the ${engine === "oracle" ? "Oracle" : "SQL Server"} driver on this server: ${(e as Error).message}`);
+  }
+}
+
 export async function testConnection(c: ConnectionInput) {
-  return c.engine === "oracle" ? testOracle(c) : testSqlServer(c);
+  const d = await loadDriver(c.engine);
+  return d.oracle ? d.oracle.testOracle(c) : d.sqlserver!.testSqlServer(c);
 }
 
 export async function takeSnapshot(c: ConnectionInput, wanted: Set<ObjectType>): Promise<Snapshot> {
-  return c.engine === "oracle" ? snapshotOracle(c, wanted) : snapshotSqlServer(c, wanted);
+  const d = await loadDriver(c.engine);
+  return d.oracle ? d.oracle.snapshotOracle(c, wanted) : d.sqlserver!.snapshotSqlServer(c, wanted);
 }
 
 /** Turn driver errors into a message a user can act on. Never includes the password. */
